@@ -18,7 +18,7 @@ library(cowplot)
 #2.数据预处理（读取->Downsample->合并->Transform）
 
 #2.1 读取->Downsample->合并
-projectdir<-"/media/zhujing/DATA2/5-A Streamlined CyTOF Workflow To Facilitate Standardized Multi-Site Immune Profiling of COVID-19 Patients"
+projectdir<-"/media/zhujing/DATA2/1-Increased IL-10-producing regulatory T cells are"
 mergeMethod<-"all"
 fixedNum<-5000
 
@@ -95,7 +95,7 @@ cluster_stat<-stat_by_cluster(combined_data_transformed,
                               summerise_method="median",
                               groups=groups,
                               major_cond="Patient_Type",
-                              group_seq=c("HC","W","ICU"), #设置major_cod在各个统计中的顺序
+                              group_seq=c("HC","W","ICU_W","ICU"), #设置major_cod在各个统计中的顺序
                               stat.paired = T,
                               stat.method = "t-test")
 #head(cluster_stat)
@@ -117,15 +117,22 @@ draw_abundance_volcano(cluster_stat,
 #生成每个cluster的expr_para的heatmap，boxplot 
 cluster_expr_report(cluster_stat,
                     #cluster_id=c(3,39), #根据细胞类型选择cluster_id
-                    heatmap_ctrl=c("ICU","W","HC"),
+                    heatmap_ctrl=c("ICU_W","ICU","W","HC"),
                     subgroup_cond = "Patient_Type",
                     #heatmap1_trans_method = "0_to_Max"
                     )
 
 #绘制差异表达火山图
 draw_expr_volcano(cluster_stat,
-                  cond1="HC",
-                  cond2="ICU")
+                  cond1="W",
+                  cond2="ICU",
+                  cluster_id = 7,
+                  #cluster_id = c(23,30),
+                  dif.level = 1.5,
+                  stat.paired = FALSE,
+                  #stat.method = "auto",
+                  conf.level = 0.95,
+                  )
 #3.4 绘制cluster的heatmap ***
 #需要all_markers.csv中含有heatmap一列
 #source("./backup/Heatmap_Output.R")

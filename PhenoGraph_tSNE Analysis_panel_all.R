@@ -13,13 +13,13 @@ library(cytofexplorer)
 #2 数据预处理（读取->Downsample->合并->Transform）
 #2.1 读取FCS文件，Downsample, Merge等
 # 输入
-projectdir<-"/media/zhujing/DATA2/5-A Streamlined CyTOF Workflow To Facilitate Standardized Multi-Site Immune Profiling of COVID-19 Patients"
+projectdir<-"/media/zhujing/DATA2/1-Increased IL-10-producing regulatory T cells are"
 mergeMethod<-"ceil" #合并方法："ceil",'all','fixed','min'
 fixedNum<-5000 #设置从每个文件抽取的细胞数
 
 #目录设置
 wdir<-"Pipeline"
-raw_fcs_dir<-"Singelets"
+raw_fcs_dir<-"data"
 wdir<-paste0(projectdir,"/",wdir)
 raw_fcs_dir<-paste0(projectdir,"/",raw_fcs_dir)
 metadata_dir<-paste0(wdir,"/metadata")
@@ -36,6 +36,7 @@ write.flowSet(foo,outFile)
 #write.FCS(foo,outFile)
 #运行后注释掉以上代码
 """
+
 inFile_1<-list.files(out_Files,pattern = '.fcs$',full.names = TRUE)
 combined_data_raw<-cytof_exprsMerge(fcsFiles=inFile_1,
                                     transformMethod = "none",
@@ -54,7 +55,7 @@ colnames(combined_data_raw)<-paraname
 
 #增加File_ID
 File_ID<-sub("_[0-9]*$","",row.names(combined_data_raw))
-#File_ID
+File_ID
 combined_data_raw<-data.frame(combined_data_raw,File_ID)
 
 #Chekpoint
@@ -63,20 +64,11 @@ head(combined_data_raw)
 #2.2 Transform 数据转换:针对部分通道，方法 cytofAsinh
 # input:
 #重要：通道选择，仅仅首次需要input
-#write.csv(colnames(combined_data_raw),paste0(metadata_dir,"/all_markers.csv"), row.names=FALSE) 
+write.csv(colnames(combined_data_raw),paste0(metadata_dir,"/all_markers.csv"), row.names=FALSE) 
 #仅第一次运行，通道一旦运行后注释掉上一行代码。
 #到工作目录中找到all_markers.csv,打开后，首行A列标明“markers”，B列标明“transform”
 #B列中在要transform的标签行标记1，保存退出
 #后面可以把write.csv......这行注释，就不会再运行此行。
-
-#确定分组,文件分组，仅仅首次需要input
-#write.csv(unique(File_ID),paste0(metadata_dir,"/all_samples.csv"),row.names = FALSE)
-
-#到metadata目录中找到samplename.csv，打开后
-#A列名设为File_ID，根据样本分组情况设置后面几列；
-#B列名设为Short_name,每个样本的简称，可以方便的出现在输出的图片中；
-#C列以后根据实验设计，输入实际的分组情况，例如：Timepoint,Tissue_Type,Patient_Type ect.
-#第一次运行，通道一旦选好可以将此行注释
 
 #数据转换
 all_markers=read.csv(paste0(metadata_dir,"/all_markers.csv"))
@@ -92,8 +84,8 @@ head(combined_data_transformed)
 #3. 运行phenograph聚类（仅有一个参数K，默认30）
 #输入
 #phenograph参数设置：
-k=30 #计算knn网络的邻居个数
-#通道选择：到metadata目录中找到all_markers.csv,打开后，在右边选择一个空列输入“PhenoGraph”，
+k=100 #计算knn网络的邻居个数
+#通道选择：到metadata目录中找到all_markers.csv,打开后，在右边选择一个空列输入“phenograph”，
 #并在要进行phenogtraph聚类的标签行标记1，保存退出。
 
 #模块主体部分
@@ -140,7 +132,7 @@ str(combined_data_sampled)
 
 #6. 运行tSNE(BH-sne)降维（two options，二选一，本步骤需要时间较长）
 #Input：tSNE参数设置：
-max_iter=10000  #迭代次数
+max_iter=3000  #迭代次数
 perplexity=30  #困惑度
 #seed=123  #随机种子
 theta=0.5  #权衡速度与准确度，越小越精确，越大速度越快
@@ -154,7 +146,7 @@ if (exists('seed')) set.seed(seed)
 all_markers=read.csv(paste0(metadata_dir,"/all_markers.csv"))
 tSNE_para_id=which(all_markers$tSNE==1)
 tSNE_input_data=combined_data_sampled[,tSNE_para_id]
-#head(tSNE_input_data)
+head(tSNE_input_data)
 
 tsne_result<-Rtsne(tSNE_input_data,
                    initial_dims=ncol(tSNE_input_data),
@@ -183,7 +175,7 @@ head(combined_data_output)
 #row.names(combined_data_output)<-row.names(combined_data_raw)
 cytof_addToFCS_modified(data = combined_data_output,
                         rawFCSdir = out_Files,
-                        analyzedFCSdir = paste(wdir,"/PGtsne_output",sep = ""),
+                        analyzedFCSdir = paste(wdir,"/PG_tsne_output",sep = ""),
                         newHeader = "PG_tsne_"
 )
 
@@ -194,7 +186,7 @@ cytof_addToFCS_modified(data = combined_data_output,
 #到metadata目录中找到samplename.csv，打开后
 #A列名设为File_ID，根据样本分组情况设置后面几列；
 #B列名设为Short_name,每个样本的简称，可以方便的出现在输出的图片中；
-#C列以后根据实验设计，输入实际的分组情况，例如：Timepoint,Tissue_Type,Patient_Type ect.
+#C列以后根据实验设计，输入实际的分组情况，例如：Timepoint,Tissue_Type,Patient_ID ect.
 #第一次运行，通道一旦选好可以将此行注释
 
 groups<-read.csv(paste0(metadata_dir,"/all_samples.csv"),header = TRUE,stringsAsFactors = FALSE)
@@ -243,10 +235,7 @@ draw_tsne_figs(combined_data_plot = combined_data_plot,
                cluster_name = "PhenoGraph",
                major_cond = "Patient_Type",
                reduction_dm1 = "tsne_1",
-               reduction_dm2 = "tsne_2",
-               #dot_size = 5,
-               #text_size = 20
-               )
+               reduction_dm2 = "tsne_2")
 
 #生成marker-Cluster 系列density图片 all_markers.csv中标注density_plot
 all_markers=read.csv(paste0(metadata_dir,"/all_markers.csv"))

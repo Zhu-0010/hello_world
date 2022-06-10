@@ -6,17 +6,17 @@ import json
 from mpl_toolkits.mplot3d import Axes3D
 from matplotlib.pyplot import MultipleLocator
 
-df=pd.read_csv('acc_hidden_neuron.csv')
+df=pd.read_csv('acc_test.csv')
 
 # 1 hidden layer accuracy test
-P1_=df.iloc[0:10, 0:3].values
+P1_=df.iloc[0:17, 0:5].values
 P=P1_.astype(np.float64)
 print('P: ', P)
 
 X=P[:,0]
 print('X:', X)
-Y_CNN=P[:,1]
-Y_RNN=P[:,2]
+Y_CNN=P[:,3]
+Y_RNN=P[:,4]
 print('Y_CNN:', Y_CNN)
 print('Y_RNN:', Y_RNN)
 
@@ -49,14 +49,14 @@ fig=plt.figure(figsize=(3.5,2), dpi=300)
 ax0=fig.add_subplot(1,2,1)
 #ax1=fig.add_subplot(1,2,2, projection='3d')
 
-ax0.set_title('C          Test Accuracy \n           of NN and RNN', font3, x=0.35, )
+ax0.set_title('B          Test Accuracy \n           of NN and RNN', font3, x=0.35, )
 ax0.plot(X, Y_CNN, color='r', label='NN')
 ax0.plot(X, Y_RNN, color='b', label='RNN')
 ax0.legend(loc='best', fontsize=5)
-xticks=list(range(0,11,2))
+xticks=list(range(2,19,2))
 plt.xticks(xticks, rotation=0, fontsize=5, weight='bold')
-plt.ylim(0.45, 0.75)
-plt.yticks(np.arange(0.45, 0.76, 0.05), fontsize=5, weight='bold')
+plt.ylim(0.4, 0.9)
+plt.yticks(np.arange(0.4, 0.91, 0.1), fontsize=5, weight='bold')
 ax0.set_xlabel('Hidden Neuron Number', font1)
 ax0.set_ylabel('Accuracy', font2)
 plt.tight_layout()
@@ -64,7 +64,7 @@ plt.subplots_adjust(hspace=0.5, bottom=0.1, top=0.8)
 
 # 2 hidden layers accuracy test
 ax1=fig.add_subplot(1,2,2)
-P2_=df.iloc[12:18, 0:6].values
+P2_=df.iloc[37:47, 0:10].values
 P2=P2_.astype(np.float64)
 print('P2: ', P2)
 
@@ -84,7 +84,7 @@ print('X2:', X2)
 acc_2h=ax1.contourf(X1, X2, Y, 10)
 cbar = plt.colorbar(acc_2h) 
 cbar.ax.tick_params(labelsize=4)
-plt.title('D        Test Accuracy of 2 \n         hidden layers of NN', font3, x=0.45)
+plt.title('C        Test Accuracy of 2 \n         hidden layers of NN', font3, x=0.45)
 plt.xticks(fontsize=5, weight='bold')
 plt.yticks(fontsize=5, weight='bold')
 ax1.set_xlabel('Neuron numbers in hidden_layer 2', font1)
